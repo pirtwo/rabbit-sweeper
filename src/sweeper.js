@@ -105,7 +105,7 @@ export default class Sweeper extends Container {
     let allEmptyRevealed = [...this.grid]
       .filter(i => i.value.isEmpty()).every(i => i.value.revealed === true);
 
-    return allRabitsFlaged || allEmptyRevealed;
+    return allRabitsFlaged && allEmptyRevealed;
   }
 
   popRabbits() {

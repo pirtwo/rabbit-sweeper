@@ -17,7 +17,7 @@ export default class Sweeper extends Container {
     cellRightClicked
   }) {
     super();
-    this.state =state;
+    this.state = state;
     this.cellSize = 50;
     this.grid = new Grid2D(10, 10);
     this.container = new Container();
@@ -80,23 +80,33 @@ export default class Sweeper extends Container {
   }
 
   flood(row, col) {
-    let cell = this.grid.getCell(row, col);
-    let neighbours = this.grid
-      .getNeighbours(row, col)
-      .filter(n => !n.value.revealed && !n.value.flaged && !n.value.isRabbit());
+    let
+      list = [],
+      cell = null,
+      floodCount = 0;
 
-    cell.reveal();
-    this.createParticle({
-      row: row,
-      col: col,
-      sprite: this.sfCell
-    });
+    list.push(this.grid.getCell(row, col));    
 
-    if (cell.neighbourRabbits === 0) {
-      neighbours.forEach(n => {
-        this.flood(n.row, n.col);
+    while (list.length > 0) {
+      floodCount++;
+      cell = list.pop();
+      cell.reveal();
+      this.createParticle({
+        row: cell.row,
+        col: cell.col,
+        sprite: this.sfCell
       });
+
+      if (cell.neighbourRabbits === 0) {
+        list.push(...this.grid
+          .getNeighbours(cell.row, cell.col)
+          .map(i => i.value)
+          .filter(i => i.isEmpty() && !i.revealed && !i.flaged)          
+        );
+      }
     }
+
+    return floodCount;
   }
 
   checkWin() {
@@ -109,21 +119,26 @@ export default class Sweeper extends Container {
   }
 
   popRabbits() {
-    let count = 0;
-    [...this.grid].filter(i => i.value.isRabbit() && !i.value.revealed && !i.value.flaged)
-      .forEach(item => {
-        utils.wait(count * Math.random() * 100).then(() => {
-          item.value.reveal();
-          this.createParticle({
-            number: 4,
-            gravity: 0,
-            row: item.row,
-            col: item.col,
-            sprite: this.sfRabbit
-          });
+    return new Promise(resolve => {
+      let animations = [],
+        count = 0;
+      [...this.grid].filter(i => i.value.isRabbit() && !i.value.revealed && !i.value.flaged)
+        .forEach(item => {
+          animations.push(utils.wait(count * Math.random() * 100).then(() => {
+            item.value.reveal();
+            this.createParticle({
+              number: 4,
+              gravity: 0,
+              row: item.row,
+              col: item.col,
+              sprite: this.sfRabbit
+            });
+          }));
+          count++;
         });
-        count++;
-      });
+
+      Promise.all(animations).then(resolve);
+    });
   }
 
   showInccoretFlags() {

@@ -72,7 +72,8 @@ function setup(loader, resources) {
     sweeper.cellLeftClicked = (cell) => {
         if (sweeper.state === GAME_STATES.PAUSE || cell.flaged || cell.revealed) return;
         if (cell.isEmpty()) {
-            sweeper.flood(cell.row, cell.col);
+            let flood = sweeper.flood(cell.row, cell.col);
+            if (flood > 5) sounds.flood.play();
             if (sweeper.checkWin()) {
                 sweeper.state = GAME_STATES.PAUSE;
                 sounds.win.play();
@@ -80,9 +81,10 @@ function setup(loader, resources) {
         } else if (cell.isRabbit()) {
             sweeper.state = GAME_STATES.PAUSE;
             cell.reveal();
-            sweeper.popRabbits();
             sweeper.showInccoretFlags();
-            sounds.lose.play();
+            sweeper.popRabbits().then(() => {
+                sounds.lose.play();
+            });
         }
     }
 
@@ -95,7 +97,7 @@ function setup(loader, resources) {
         }
     }
 
-    sweeper.create(11, 11, 5);
+    sweeper.create(11, 11, 10);
 
     app.stage.addChild(sweeper);
 

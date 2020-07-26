@@ -73,4 +73,16 @@ export default class Grid2D {
         this.cells[row * this.colNum + col] = value;
         return this;
     }
+
+    getIndex(row, col) {
+        return row * this.colNum + col;
+    }
+
+    getNeighbours(row, col) {
+        return [...this].filter(cell =>
+            (cell.row >= row - 1 && cell.row <= row + 1) &&
+            (cell.col >= col - 1 && cell.col <= col + 1) &&
+            !(cell.row == row && cell.col == col)
+        );
+    }
 }

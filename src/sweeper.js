@@ -85,7 +85,7 @@ export default class Sweeper extends Container {
       cell = null,
       floodCount = 0;
 
-    list.push(this.grid.getCell(row, col));    
+    list.push(this.grid.getCell(row, col));
 
     while (list.length > 0) {
       floodCount++;
@@ -101,7 +101,7 @@ export default class Sweeper extends Container {
         list.push(...this.grid
           .getNeighbours(cell.row, cell.col)
           .map(i => i.value)
-          .filter(i => i.isEmpty() && !i.revealed && !i.flaged)          
+          .filter(i => i.isEmpty() && !i.revealed && !i.flaged)
         );
       }
     }
@@ -118,13 +118,13 @@ export default class Sweeper extends Container {
     return allRabitsFlaged && allEmptyRevealed;
   }
 
-  popRabbits() {
+  popRabbits(callback) {
     return new Promise(resolve => {
       let animations = [],
         count = 0;
       [...this.grid].filter(i => i.value.isRabbit() && !i.value.revealed && !i.value.flaged)
         .forEach(item => {
-          animations.push(utils.wait(count * Math.random() * 100).then(() => {
+          animations.push(utils.wait(count * Math.random() * 200).then(() => {
             item.value.reveal();
             this.createParticle({
               number: 4,
@@ -133,6 +133,7 @@ export default class Sweeper extends Container {
               col: item.col,
               sprite: this.sfRabbit
             });
+            if (callback) callback();
           }));
           count++;
         });

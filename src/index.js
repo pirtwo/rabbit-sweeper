@@ -16,14 +16,9 @@ const GAME_STATES = {
 }
 
 function init() {
-    // load assets and fonts
-
     app.loader
         .add('tileset', './assets/sprites/tileset.json')
-        .add('music', './assets/sounds/music.mp3')
-        .add('winSound', './assets/sounds/win.mp3')
-        .add('loseSound', './assets/sounds/lose.mp3')
-        .add('floodSound', './assets/sounds/flood.mp3')
+        .add('sounds', './assets/sounds/sounds.mp3')
         .load(setup);
 }
 
@@ -36,12 +31,33 @@ function setup(loader, resources) {
     let size = 50,
         border = 0;
 
-    const sounds = {
-        "music": resources.music.sound,
-        "win": resources.winSound.sound,
-        "lose": resources.loseSound.sound,
-        "flood": resources.floodSound.sound
-    }
+    const sound = resources.sounds.sound;
+    sound.addSprites({
+        'click': {
+            start: 0,
+            end: 0.5
+        },
+        'rabbit': {
+            start: 0.5,
+            end: 0.8
+        },
+        'flood': {
+            start: 0.8,
+            end: 1.5
+        },
+        'win': {
+            start: 1.5,
+            end: 4
+        },
+        'lose': {
+            start: 4,
+            end: 8
+        },
+        'music': {
+            start: 8,
+            end: 22
+        },
+    });
 
     let shape1 = new PIXI.Graphics();
     shape1.beginFill(0x56db37);
@@ -73,17 +89,19 @@ function setup(loader, resources) {
         if (sweeper.state === GAME_STATES.PAUSE || cell.flaged || cell.revealed) return;
         if (cell.isEmpty()) {
             let flood = sweeper.flood(cell.row, cell.col);
-            if (flood > 5) sounds.flood.play();
+            if (flood > 5) sound.play('flood');
             if (sweeper.checkWin()) {
                 sweeper.state = GAME_STATES.PAUSE;
-                sounds.win.play();
+                sound.play('win');
             }
         } else if (cell.isRabbit()) {
             sweeper.state = GAME_STATES.PAUSE;
             cell.reveal();
             sweeper.showInccoretFlags();
-            sweeper.popRabbits().then(() => {
-                sounds.lose.play();
+            sweeper.popRabbits(() => {
+                sound.play('rabbit');
+            }).then(() => {
+                sound.play('lose');
             });
         }
     }
@@ -93,7 +111,7 @@ function setup(loader, resources) {
         cell.toggleFlag();
         if (sweeper.checkWin()) {
             sweeper.state = GAME_STATES.PAUSE;
-            sounds.win.play();
+            sound.play('win');
         }
     }
 

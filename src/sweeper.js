@@ -119,27 +119,15 @@ export default class Sweeper extends Container {
     return allRabitsFlaged && allEmptyRevealed;
   }
 
-  popRabbits(callback) {
-    return new Promise(resolve => {
-      let animations = [],
-        count = 0;
-      [...this.grid].filter(i => i.value.isRabbit() && !i.value.revealed && !i.value.flaged)
-        .forEach(item => {
-          animations.push(utils.wait(count * Math.random() * 200).then(() => {
-            item.value.reveal();
-            this.createParticle({
-              number: 4,
-              gravity: 0,
-              row: item.row,
-              col: item.col,
-              sprite: this.sfRabbit
-            });
-            if (callback) callback();
-          }));
-          count++;
-        });
-
-      Promise.all(animations).then(resolve);
+  popRabbit(row, col) {
+    let cell = this.grid.getCell(row, col);
+    cell.reveal();
+    this.createParticle({
+      row,
+      col,
+      number: 4,
+      gravity: 0,
+      sprite: this.sfRabbit
     });
   }
 

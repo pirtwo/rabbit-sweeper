@@ -1,18 +1,42 @@
 import * as PIXI from "pixi.js";
+import * as utils from './lib/utils';
 import Sound from "pixi-sound";
 import Stats from "stats.js";
+import scale from './lib/scale';
 import Sweeper from './sweeper';
 import Hud from './hud';
 
 const app = new PIXI.Application({
+    width: 1920,
+    height: 1080,
     antialias: true,
-    backgroundColor: 0x1099bb
+    backgroundColor: 0xffffff
+    //transparent: true
 });
 document.body.appendChild(app.view);
 
 const GAME_STATES = {
+    "PLAY": 1,
+    "SKIP": 2,
     "PAUSE": 0,
-    "PLAY": 1
+}
+
+const GAME_DIFFICULTY = {
+    easy: {
+        rows: 9,
+        cols: 9,
+        rabbits: calcRabbitNum(9 * 9, 10)
+    },
+    medium: {
+        rows: 13,
+        cols: 19,
+        rabbits: calcRabbitNum(13 * 19, 15)
+    },
+    hard: {
+        rows: 17,
+        cols: 31,
+        rabbits: calcRabbitNum(17 * 31, 20)
+    }
 }
 
 function init() {
@@ -27,10 +51,11 @@ function setup(loader, resources) {
     stats.showPanel(0);
     document.body.appendChild(stats.dom);
 
-    // board
-    let size = 50,
-        border = 0;
+    let currAnims;
+    let gameState = GAME_STATES.PLAY;
+    let gameDifficulty = GAME_DIFFICULTY.easy;
 
+    const tileset = resources.tileset.textures;
     const sound = resources.sounds.sound;
     sound.addSprites({
         'click': {
@@ -59,22 +84,32 @@ function setup(loader, resources) {
         },
     });
 
+    let size = 50;
     let shape1 = new PIXI.Graphics();
     shape1.beginFill(0x56db37);
-    shape1.lineStyle(border, 0x000000);
     shape1.drawRect(0, 0, size, size);
     shape1.endFill();
 
     let shape2 = new PIXI.Graphics();
     shape2.beginFill(0xf4f5bf);
-    shape2.lineStyle(border, 0xf4f5bf);
     shape2.drawRect(0, 0, size, size);
     shape2.endFill();
 
+    let shape3 = new PIXI.Graphics();
+    shape3.beginFill(0xffffff);
+    shape3.drawRect(0, 0, app.screen.width, 100);
+    shape3.endFill();
 
-    const tileset = resources.tileset.textures;
-    const hud = new Hud();
+    const hud = new Hud({
+        audioOn: tileset["audioOn.png"],
+        reset: tileset["return.png"],
+        trophy: tileset["trophy.png"],
+        flag: tileset["flag.png"],
+        stopwatch: tileset["stopwatch.png"],
+        background: app.renderer.generateTexture(shape3)
+    });
     const sweeper = new Sweeper({
+        cellSize: 80,
         textures: {
             flag: tileset['flag.png'],
             cross: tileset['cross.png'],
@@ -85,42 +120,112 @@ function setup(loader, resources) {
         }
     });
 
-    sweeper.cellLeftClicked = (cell) => {
-        if (sweeper.state === GAME_STATES.PAUSE || cell.flaged || cell.revealed) return;
-        if (cell.isEmpty()) {
-            let flood = sweeper.flood(cell.row, cell.col);
-            if (flood > 5) sound.play('flood');
-            if (sweeper.checkWin()) {
-                sweeper.state = GAME_STATES.PAUSE;
-                sound.play('win');
-            }
-        } else if (cell.isRabbit()) {
-            sweeper.state = GAME_STATES.PAUSE;
-            cell.reveal();
-            sweeper.showInccoretFlags();
-            sweeper.popRabbits(() => {
+    const newGame = () => {
+        gameState = GAME_STATES.PLAY;
+        Sound.stopAll();
+        if (gameDifficulty === GAME_DIFFICULTY.easy) {
+            sweeper.cellSize = 100;
+        } else if (gameDifficulty === GAME_DIFFICULTY.medium) {
+            sweeper.cellSize = 70;
+        } else if (gameDifficulty === GAME_DIFFICULTY.hard) {
+            sweeper.cellSize = 55;
+        }
+        sweeper.create(gameDifficulty.rows, gameDifficulty.cols, gameDifficulty.rabbits);
+        sweeper.position.set(app.screen.width / 2 - sweeper.width / 2, 100);
+    }
+
+    const loseAnimation = () => {
+        let anims = [];
+        let count = 0;
+        [...sweeper.grid].filter(i =>
+            i.value.isRabbit() && !i.value.revealed && !i.value.flaged).forEach(cell => {
+            let anim = utils.wait(count * 200);
+            anim.promise.then(() => {
+                sweeper.popRabbit(cell.row, cell.col);
                 sound.play('rabbit');
-            }).then(() => {
-                sound.play('lose');
-            });
+            }).catch(() => {});
+            anims.push(anim);
+            count++;
+        });
+
+        return anims;
+    }
+
+    hud.diffBtn.on("pointertap", () => {
+        if (gameDifficulty === GAME_DIFFICULTY.easy) {
+            gameDifficulty = GAME_DIFFICULTY.medium;
+            hud.diffBtn.text = "Diffculty: Medium";
+        } else if (gameDifficulty === GAME_DIFFICULTY.medium) {
+            gameDifficulty = GAME_DIFFICULTY.hard;
+            hud.diffBtn.text = "Diffculty: Hard";
+        } else if (gameDifficulty === GAME_DIFFICULTY.hard) {
+            gameDifficulty = GAME_DIFFICULTY.easy;
+            hud.diffBtn.text = "Diffculty: Easy";
+        }
+
+        newGame();
+    });
+
+    hud.audioBtn.pointerTapCallback = () => {
+        console.log("audio");
+    }
+
+    hud.resetBtn.pointerTapCallback = () => {
+        newGame();
+    }
+
+    hud.trophyBtn.pointerTapCallback = () => {
+        console.log("trophy");
+    }
+
+    sweeper.cellLeftClicked = (cell) => {
+        if (gameState === GAME_STATES.PLAY) {
+            if (cell.flaged || cell.revealed)
+                return;
+            if (cell.isEmpty()) {
+                let flood = sweeper.flood(cell.row, cell.col);
+                if (flood > 5) {
+                    sound.play('flood');
+                } else {
+                    sound.play('click');
+                }
+                if (sweeper.checkWin()) {
+                    gameState = GAME_STATES.PAUSE;
+                    sound.play('win');
+                }
+            } else if (cell.isRabbit()) {
+                gameState = GAME_STATES.PAUSE;
+                cell.reveal();
+                sweeper.showInccoretFlags();
+                currAnims = loseAnimation();
+                Promise.all(currAnims.map(i => i.promise))
+                    .catch(() => {
+                        [...sweeper.grid].filter(i => i.value.isRabbit() && !i.value.revealed)
+                            .forEach(cell => {
+                                cell.value.reveal();
+                            });
+                    })
+                    .finally(() => sound.play('lose'));
+            }
+        } else {
+            gameState = GAME_STATES.SKIP;
+            currAnims.forEach(i => i.cancel());
         }
     }
 
     sweeper.cellRightClicked = (cell) => {
-        if (sweeper.state === GAME_STATES.PAUSE) return;
-        cell.toggleFlag();
-        if (sweeper.checkWin()) {
-            sweeper.state = GAME_STATES.PAUSE;
-            sound.play('win');
+        if (gameState === GAME_STATES.PLAY) {
+            if (!cell.revealed) cell.toggleFlag();
+            if (sweeper.checkWin()) {
+                gameState = GAME_STATES.PAUSE;
+                sound.play('win');
+            }
         }
     }
 
-    sweeper.create(11, 11, 10);
-
-    app.stage.addChild(sweeper);
-
-    // settings
-    // scoreboard
+    newGame();
+    scale(app.view);
+    app.stage.addChild(hud, sweeper);
 
     // game loop
     app.ticker.add((delta) => {
@@ -131,8 +236,11 @@ function setup(loader, resources) {
     });
 }
 
+function calcRabbitNum(cells, ratio = 20) {
+    return Math.floor(cells * ratio / 100);
+}
+
+window.addEventListener('resize', () => scale(app.view));
 document.addEventListener('contextmenu', event => event.preventDefault());
 
 init();
-
-export default app;

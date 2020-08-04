@@ -10,8 +10,8 @@ export default class Grid2D {
         for (let i = 0; i < this.cells.length; i++) {
             count++;
             yield {
-                row: Math.floor(i / this.rowNum),
-                col: i - Math.floor(i / this.rowNum) * this.colNum,
+                row: Math.floor(i / this.colNum),
+                col: i - Math.floor(i / this.colNum) * this.colNum,
                 value: this.cells[i]
             };
         }

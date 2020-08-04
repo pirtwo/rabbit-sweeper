@@ -11,6 +11,11 @@ export default class Hud extends Container {
     constructor(textures) {
         super();
 
+        this.time = 0;
+        this.flags = 0;
+        this.totalFlags = 0;
+        this.timer = null;
+
         this.textures = textures;
         this.wrapper = new Container();
         this.background = new Sprite(textures.background);
@@ -25,21 +30,21 @@ export default class Hud extends Container {
         timerIcon.width = timerIcon.height = 30;
         timerIcon.tint = 0x000000;
 
-        this.flags = new Text("00:99", new TextStyle({
+        this.flagCounter = new Text("00:99", new TextStyle({
             fontSize: 25,
             fontWeight: "bold"
         }));
 
-        this.countdown = new Text("00:00", new TextStyle({
+        this.timeCounter = new Text("00:00", new TextStyle({
             fontSize: 25,
             fontWeight: "bold"
         }));
 
-        this.status.addChild(flagIcon, timerIcon, this.flags, this.countdown);
+        this.status.addChild(flagIcon, timerIcon, this.flagCounter, this.timeCounter);
         flagIcon.position.set(0, 0);
-        this.flags.position.set(40, 0);
+        this.flagCounter.position.set(40, 0);
         timerIcon.position.set(130, 0);
-        this.countdown.position.set(170, 0);
+        this.timeCounter.position.set(170, 0);
 
         let btnSize = 70;
 
@@ -93,6 +98,28 @@ export default class Hud extends Container {
         this.addChild(this.background, this.wrapper);
         this.wrapper.position.set(this.width / 2 - this.wrapper.width / 2, 0);
 
+    }
+
+    startTimer() {
+        clearInterval(this.timer);
+        this.time = 0;
+        this.timer = setInterval(() => {
+            this.time++;
+            let mins = Math.floor(this.time / 60);
+            let secs = this.time % 60;
+            this.timeCounter.text = `${mins < 10 ? `0${mins}` : mins}:${secs < 10 ? `0${secs}` : secs}`;
+        }, 1000);
+    }
+
+    stopTimer() {
+        clearInterval(this.timer);
+    }
+
+    setFlagCounter(curr, total = null) {
+        this.flags = curr;
+        if (total) this.totalFlags = total;
+        this.flagCounter.text =
+            `${this.flags < 10 ? `0${this.flags}` : this.flags}:${this.totalFlags < 10 ? `0${this.totalFlags}`:this.totalFlags}`;
     }
 
     update(delta) {}

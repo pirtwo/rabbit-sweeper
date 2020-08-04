@@ -10,8 +10,8 @@ const app = new PIXI.Application({
     width: 1920,
     height: 1080,
     antialias: true,
-    backgroundColor: 0xffffff
-    //transparent: true
+    //backgroundColor: 0xffffff
+    transparent: true
 });
 document.body.appendChild(app.view);
 
@@ -52,6 +52,7 @@ function setup(loader, resources) {
     document.body.appendChild(stats.dom);
 
     let currAnims;
+    let remainigFlags = 0;
     let gameState = GAME_STATES.PLAY;
     let gameDifficulty = GAME_DIFFICULTY.easy;
 
@@ -121,8 +122,12 @@ function setup(loader, resources) {
     });
 
     const newGame = () => {
-        gameState = GAME_STATES.PLAY;
+        remainigFlags = gameDifficulty.rabbits;
+
         Sound.stopAll();
+        hud.startTimer();
+        hud.setFlagCounter(0, remainigFlags);
+
         if (gameDifficulty === GAME_DIFFICULTY.easy) {
             sweeper.cellSize = 100;
         } else if (gameDifficulty === GAME_DIFFICULTY.medium) {
@@ -132,6 +137,7 @@ function setup(loader, resources) {
         }
         sweeper.create(gameDifficulty.rows, gameDifficulty.cols, gameDifficulty.rabbits);
         sweeper.position.set(app.screen.width / 2 - sweeper.width / 2, 100);
+        gameState = GAME_STATES.PLAY;
     }
 
     const loseAnimation = () => {
@@ -215,7 +221,19 @@ function setup(loader, resources) {
 
     sweeper.cellRightClicked = (cell) => {
         if (gameState === GAME_STATES.PLAY) {
-            if (!cell.revealed) cell.toggleFlag();
+            if (!cell.revealed) {
+                if (cell.flaged) {
+                    remainigFlags++;
+                    cell.toggleFlag();
+                    hud.setFlagCounter(remainigFlags);
+                } else {
+                    if (remainigFlags > 0) {
+                        remainigFlags--;
+                        cell.toggleFlag();
+                        hud.setFlagCounter(remainigFlags);
+                    }
+                }
+            }
             if (sweeper.checkWin()) {
                 gameState = GAME_STATES.PAUSE;
                 sound.play('win');

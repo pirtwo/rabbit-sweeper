@@ -1,9 +1,9 @@
 import * as math from "./math";
 
 export function wait(duration = 0) {
-    return new Promise((resolve, reject) => {
+    return makeCancelable(new Promise((resolve, reject) => {
         setTimeout(resolve, duration);
-    });
+    }));
 }
 
 /**
@@ -23,4 +23,26 @@ export function shuffle(array) {
 
 export function getRandomElement(arr = []) {
     return arr[math.randInt(0, arr.length - 1)];
+}
+
+function makeCancelable(promise) {
+    let canceled = false;
+    const wrapperPromise = new Promise((resolve, reject) => {
+        promise.then(val => {
+            canceled ? reject({
+                canceled: true
+            }) : resolve(val);
+        }).catch(error => {
+            canceled ? reject({
+                canceled: true
+            }) : reject(error)
+        });
+    });
+
+    return {
+        promise: wrapperPromise,
+        cancel: () => {
+            canceled = true;
+        }
+    }
 }

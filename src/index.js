@@ -6,6 +6,8 @@ import Charm from './lib/charm';
 import scale from './lib/scale';
 import Sweeper from './sweeper';
 import Hud from './hud';
+import LoseScene from './scene/lose';
+import loadWebfonts from "./lib/webfont";
 
 const app = new PIXI.Application({
     width: 1920,
@@ -17,9 +19,10 @@ const app = new PIXI.Application({
 document.body.appendChild(app.view);
 
 const GAME_STATES = {
+    "READY": 0,
     "PLAY": 1,
     "SKIP": 2,
-    "PAUSE": 0,
+    "PAUSE": 3,
 }
 
 const GAME_DIFFICULTY = {
@@ -39,6 +42,8 @@ const GAME_DIFFICULTY = {
         rabbits: calcRabbitNum(17 * 31, 20)
     }
 }
+
+loadWebfonts(["Aldrich"], init);
 
 function init() {
     app.loader
@@ -81,6 +86,8 @@ function setup(loader, resources) {
             end: 22
         },
     });
+
+    const loseScene = new LoseScene(500, 300, 1920, 1080);
 
     let currAnims;
     let plantedFlags = 0;
@@ -132,7 +139,7 @@ function setup(loader, resources) {
     const newGame = () => {
         plantedFlags = 0;
         Sound.stopAll();
-        hud.startTimer();
+        hud.resetTimer();
         hud.setFlagCounter(plantedFlags, gameDifficulty.rabbits);
         shakeTween.pause();
 
@@ -147,10 +154,19 @@ function setup(loader, resources) {
         sweeper.angle = 0;
         sweeper.position.set(app.screen.width / 2, sweeper.height / 2 + 100);
         sweeper.pivot.set(sweeper.width / 2, sweeper.height / 2);
-        gameState = GAME_STATES.PLAY;
+        gameState = GAME_STATES.READY;
     }
 
-    const loseAnimation = () => {
+    const playFloodEffects = () => {
+        shakeTween.play();
+        setTimeout(() => {
+            shakeTween.pause();
+            sweeper.angle = 0;
+            sweeper.position.x = app.screen.width / 2;
+        }, 300);
+    }
+
+    const palyLoseEffects = () => {
         let anims = [];
         let count = 0;
         [...sweeper.grid].filter(i =>
@@ -165,6 +181,32 @@ function setup(loader, resources) {
         });
 
         return anims;
+    }
+
+    const gameStart = () => {
+        hud.startTimer();
+        gameState = GAME_STATES.PLAY
+    }
+
+    const gameWin = () => {
+        gameState = GAME_STATES.PAUSE;
+        hud.stopTimer();
+        sound.play('win');
+    }
+
+    const gameLose = () => {
+        gameState = GAME_STATES.PAUSE;        
+        hud.stopTimer();
+        sweeper.showInccoretFlags();
+        currAnims = palyLoseEffects();
+        Promise.all(currAnims.map(i => i.promise))
+            .catch(() => {
+                [...sweeper.grid].filter(i => i.value.isRabbit() && !i.value.revealed)
+                    .forEach(cell => {
+                        cell.value.reveal();
+                    });
+            })
+            .finally(() => sound.play('lose'));
     }
 
     hud.diffBtn.on("pointertap", () => {
@@ -195,40 +237,21 @@ function setup(loader, resources) {
     }
 
     sweeper.cellLeftClicked = (cell) => {
+        if (gameState === GAME_STATES.READY) gameStart();
         if (gameState === GAME_STATES.PLAY) {
-            if (cell.flaged || cell.revealed)
-                return;
+            if (cell.flaged || cell.revealed) return;
+
+            cell.reveal();
             if (cell.isEmpty()) {
                 let flood = sweeper.flood(cell.row, cell.col);
                 if (flood > 5) {
                     sound.play('flood');
-                    shakeTween.play();
-                    setTimeout(() => {
-                        shakeTween.pause();
-                        sweeper.angle = 0;
-                        sweeper.position.x = app.screen.width / 2;
-                    }, 300);
+                    playFloodEffects();
                 } else {
                     sound.play('click');
                 }
-                if (sweeper.checkWin()) {
-                    gameState = GAME_STATES.PAUSE;
-                    sound.play('win');
-                }
-            } else if (cell.isRabbit()) {
-                gameState = GAME_STATES.PAUSE;
-                cell.reveal();
-                sweeper.showInccoretFlags();
-                currAnims = loseAnimation();
-                Promise.all(currAnims.map(i => i.promise))
-                    .catch(() => {
-                        [...sweeper.grid].filter(i => i.value.isRabbit() && !i.value.revealed)
-                            .forEach(cell => {
-                                cell.value.reveal();
-                            });
-                    })
-                    .finally(() => sound.play('lose'));
-            }
+                if (sweeper.checkWin()) gameWin();
+            } else if (cell.isRabbit()) gameLose();
         } else {
             gameState = GAME_STATES.SKIP;
             currAnims.forEach(i => i.cancel());
@@ -236,6 +259,7 @@ function setup(loader, resources) {
     }
 
     sweeper.cellRightClicked = (cell) => {
+        if (gameState === GAME_STATES.READY) gameStart();
         if (gameState === GAME_STATES.PLAY) {
             if (!cell.revealed) {
                 if (cell.flaged) {
@@ -250,16 +274,13 @@ function setup(loader, resources) {
                     }
                 }
             }
-            if (sweeper.checkWin()) {
-                gameState = GAME_STATES.PAUSE;
-                sound.play('win');
-            }
+            if (sweeper.checkWin()) gameWin();
         }
     }
 
     newGame();
     scale(app.view);
-    app.stage.addChild(hud, sweeper);
+    app.stage.addChild(hud, sweeper, loseScene);
 
     // game loop
     app.ticker.add((delta) => {
@@ -277,5 +298,3 @@ function calcRabbitNum(cells, ratio = 20) {
 
 window.addEventListener('resize', () => scale(app.view));
 document.addEventListener('contextmenu', event => event.preventDefault());
-
-init();

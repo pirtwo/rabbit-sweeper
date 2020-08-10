@@ -83,7 +83,7 @@ function setup(loader, resources) {
     });
 
     let currAnims;
-    let remainigFlags = 0;
+    let plantedFlags = 0;
     let gameState = GAME_STATES.PLAY;
     let gameDifficulty = GAME_DIFFICULTY.easy;
 
@@ -130,11 +130,10 @@ function setup(loader, resources) {
     ]);
 
     const newGame = () => {
-        remainigFlags = gameDifficulty.rabbits;
-
+        plantedFlags = 0;
         Sound.stopAll();
         hud.startTimer();
-        hud.setFlagCounter(0, remainigFlags);
+        hud.setFlagCounter(plantedFlags, gameDifficulty.rabbits);
         shakeTween.pause();
 
         if (gameDifficulty === GAME_DIFFICULTY.easy) {
@@ -240,14 +239,14 @@ function setup(loader, resources) {
         if (gameState === GAME_STATES.PLAY) {
             if (!cell.revealed) {
                 if (cell.flaged) {
-                    remainigFlags++;
+                    plantedFlags--;
                     cell.toggleFlag();
-                    hud.setFlagCounter(remainigFlags);
+                    hud.setFlagCounter(plantedFlags);
                 } else {
-                    if (remainigFlags > 0) {
-                        remainigFlags--;
+                    if (plantedFlags < gameDifficulty.rabbits) {
+                        plantedFlags++;
                         cell.toggleFlag();
-                        hud.setFlagCounter(remainigFlags);
+                        hud.setFlagCounter(plantedFlags);
                     }
                 }
             }

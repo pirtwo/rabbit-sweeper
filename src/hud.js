@@ -32,12 +32,14 @@ export default class Hud extends Container {
 
         this.flagCounter = new Text("00:99", new TextStyle({
             fontSize: 25,
-            fontWeight: "bold"
+            fontWeight: "bold",
+            fontFamily: 'Aldrich'
         }));
 
         this.timeCounter = new Text("00:00", new TextStyle({
             fontSize: 25,
-            fontWeight: "bold"
+            fontWeight: "bold",
+            fontFamily: 'Aldrich'
         }));
 
         this.status.addChild(flagIcon, timerIcon, this.flagCounter, this.timeCounter);
@@ -50,7 +52,8 @@ export default class Hud extends Container {
 
         this.diffBtn = new Text("Diffculty: Easy", new TextStyle({
             fontSize: 25,
-            fontWeight: "bold"
+            fontWeight: "bold",
+            fontFamily: 'Aldrich'
         }));
         this.diffBtn.buttonMode = true;
         this.diffBtn.interactive = true;
@@ -100,19 +103,26 @@ export default class Hud extends Container {
 
     }
 
-    startTimer() {
-        clearInterval(this.timer);
-        this.time = 0;
+    startTimer() {        
         this.timer = setInterval(() => {
             this.time++;
             let mins = Math.floor(this.time / 60);
             let secs = this.time % 60;
             this.timeCounter.text = `${mins < 10 ? `0${mins}` : mins}:${secs < 10 ? `0${secs}` : secs}`;
         }, 1000);
+        return this;
     }
 
     stopTimer() {
         clearInterval(this.timer);
+        return this;
+    }
+
+    resetTimer() {
+        this.time = 0;
+        this.timeCounter.text = "00:00";
+        clearInterval(this.timer);   
+        return this;     
     }
 
     setFlagCounter(curr, total = null) {

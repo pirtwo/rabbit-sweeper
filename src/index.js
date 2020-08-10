@@ -2,6 +2,7 @@ import * as PIXI from "pixi.js";
 import * as utils from './lib/utils';
 import Sound from "pixi-sound";
 import Stats from "stats.js";
+import Charm from './lib/charm';
 import scale from './lib/scale';
 import Sweeper from './sweeper';
 import Hud from './hud';
@@ -30,7 +31,7 @@ const GAME_DIFFICULTY = {
     medium: {
         rows: 13,
         cols: 19,
-        rabbits: calcRabbitNum(13 * 19, 15)
+        rabbits: calcRabbitNum(13 * 19, 17)
     },
     hard: {
         rows: 17,
@@ -51,11 +52,7 @@ function setup(loader, resources) {
     stats.showPanel(0);
     document.body.appendChild(stats.dom);
 
-    let currAnims;
-    let remainigFlags = 0;
-    let gameState = GAME_STATES.PLAY;
-    let gameDifficulty = GAME_DIFFICULTY.easy;
-
+    const charm = new Charm(PIXI);
     const tileset = resources.tileset.textures;
     const sound = resources.sounds.sound;
     sound.addSprites({
@@ -84,6 +81,12 @@ function setup(loader, resources) {
             end: 22
         },
     });
+
+    let currAnims;
+    let remainigFlags = 0;
+    let gameState = GAME_STATES.PLAY;
+    let gameDifficulty = GAME_DIFFICULTY.easy;
+
 
     let size = 50;
     let shape1 = new PIXI.Graphics();
@@ -121,12 +124,18 @@ function setup(loader, resources) {
         }
     });
 
+    const shakeTween = charm.makeTween([
+        [sweeper, "angle", -0.5, 0.5, 5, "smoothstep", true],
+        [sweeper, "x", (app.screen.width / 2) - 5, (app.screen.width / 2) + 5, 5, "smoothstep", true]
+    ]);
+
     const newGame = () => {
         remainigFlags = gameDifficulty.rabbits;
 
         Sound.stopAll();
         hud.startTimer();
         hud.setFlagCounter(0, remainigFlags);
+        shakeTween.pause();
 
         if (gameDifficulty === GAME_DIFFICULTY.easy) {
             sweeper.cellSize = 100;
@@ -136,7 +145,9 @@ function setup(loader, resources) {
             sweeper.cellSize = 55;
         }
         sweeper.create(gameDifficulty.rows, gameDifficulty.cols, gameDifficulty.rabbits);
-        sweeper.position.set(app.screen.width / 2 - sweeper.width / 2, 100);
+        sweeper.angle = 0;
+        sweeper.position.set(app.screen.width / 2, sweeper.height / 2 + 100);
+        sweeper.pivot.set(sweeper.width / 2, sweeper.height / 2);
         gameState = GAME_STATES.PLAY;
     }
 
@@ -192,6 +203,12 @@ function setup(loader, resources) {
                 let flood = sweeper.flood(cell.row, cell.col);
                 if (flood > 5) {
                     sound.play('flood');
+                    shakeTween.play();
+                    setTimeout(() => {
+                        shakeTween.pause();
+                        sweeper.angle = 0;
+                        sweeper.position.x = app.screen.width / 2;
+                    }, 300);
                 } else {
                     sound.play('click');
                 }
@@ -250,6 +267,7 @@ function setup(loader, resources) {
         stats.begin();
         hud.update(delta);
         sweeper.update(delta);
+        charm.update();
         stats.end();
     });
 }

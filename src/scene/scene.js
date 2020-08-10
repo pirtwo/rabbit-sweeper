@@ -5,6 +5,7 @@ import {
 export default class Scene extends Container {
     constructor() {
         super();
+        this.visible = false;
     }
 
     show() {

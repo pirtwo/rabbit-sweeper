@@ -6,14 +6,13 @@ import Charm from './lib/charm';
 import scale from './lib/scale';
 import Sweeper from './sweeper';
 import Hud from './hud';
-import LoseScene from './scene/lose';
+import PopupScene from './popup';
 import loadWebfonts from "./lib/webfont";
 
 const app = new PIXI.Application({
     width: 1920,
     height: 1080,
     antialias: true,
-    //backgroundColor: 0xffffff
     transparent: true
 });
 document.body.appendChild(app.view);
@@ -87,10 +86,10 @@ function setup(loader, resources) {
         },
     });
 
-    const loseScene = new LoseScene(500, 300, 1920, 1080);
 
     let currAnims;
     let plantedFlags = 0;
+    let muted = false;
     let gameState = GAME_STATES.PLAY;
     let gameDifficulty = GAME_DIFFICULTY.easy;
 
@@ -111,14 +110,21 @@ function setup(loader, resources) {
     shape3.drawRect(0, 0, app.screen.width, 100);
     shape3.endFill();
 
+    let shape4 = new PIXI.Graphics();
+    shape4.beginFill(0x03a9f4);
+    shape4.drawRoundedRect(0, 0, 200, 100, 10);
+    shape4.endFill();
+
     const hud = new Hud({
         audioOn: tileset["audioOn.png"],
+        audioOff: tileset["audioOff.png"],
         reset: tileset["return.png"],
         trophy: tileset["trophy.png"],
         flag: tileset["flag.png"],
         stopwatch: tileset["stopwatch.png"],
         background: app.renderer.generateTexture(shape3)
     });
+
     const sweeper = new Sweeper({
         cellSize: 80,
         textures: {
@@ -131,31 +137,20 @@ function setup(loader, resources) {
         }
     });
 
+    const popup = new PopupScene({
+        width: 500,
+        height: 650,
+        backdropWidth: 1920,
+        backdropHeight: 1080,
+        textures: {
+            button: app.renderer.generateTexture(shape4)
+        }
+    });
+
     const shakeTween = charm.makeTween([
         [sweeper, "angle", -0.5, 0.5, 5, "smoothstep", true],
         [sweeper, "x", (app.screen.width / 2) - 5, (app.screen.width / 2) + 5, 5, "smoothstep", true]
     ]);
-
-    const newGame = () => {
-        plantedFlags = 0;
-        Sound.stopAll();
-        hud.resetTimer();
-        hud.setFlagCounter(plantedFlags, gameDifficulty.rabbits);
-        shakeTween.pause();
-
-        if (gameDifficulty === GAME_DIFFICULTY.easy) {
-            sweeper.cellSize = 100;
-        } else if (gameDifficulty === GAME_DIFFICULTY.medium) {
-            sweeper.cellSize = 70;
-        } else if (gameDifficulty === GAME_DIFFICULTY.hard) {
-            sweeper.cellSize = 55;
-        }
-        sweeper.create(gameDifficulty.rows, gameDifficulty.cols, gameDifficulty.rabbits);
-        sweeper.angle = 0;
-        sweeper.position.set(app.screen.width / 2, sweeper.height / 2 + 100);
-        sweeper.pivot.set(sweeper.width / 2, sweeper.height / 2);
-        gameState = GAME_STATES.READY;
-    }
 
     const playFloodEffects = () => {
         shakeTween.play();
@@ -183,6 +178,27 @@ function setup(loader, resources) {
         return anims;
     }
 
+    const gameReset = () => {
+        plantedFlags = 0;
+        Sound.stopAll();
+        hud.resetTimer();
+        hud.setFlagCounter(plantedFlags, gameDifficulty.rabbits);
+        shakeTween.pause();
+
+        if (gameDifficulty === GAME_DIFFICULTY.easy) {
+            sweeper.cellSize = 100;
+        } else if (gameDifficulty === GAME_DIFFICULTY.medium) {
+            sweeper.cellSize = 70;
+        } else if (gameDifficulty === GAME_DIFFICULTY.hard) {
+            sweeper.cellSize = 55;
+        }
+        sweeper.create(gameDifficulty.rows, gameDifficulty.cols, gameDifficulty.rabbits);
+        sweeper.angle = 0;
+        sweeper.position.set(app.screen.width / 2, sweeper.height / 2 + 100);
+        sweeper.pivot.set(sweeper.width / 2, sweeper.height / 2);
+        gameState = GAME_STATES.READY;
+    }
+
     const gameStart = () => {
         hud.startTimer();
         gameState = GAME_STATES.PLAY
@@ -192,10 +208,11 @@ function setup(loader, resources) {
         gameState = GAME_STATES.PAUSE;
         hud.stopTimer();
         sound.play('win');
+        popup.playerWin().show();
     }
 
     const gameLose = () => {
-        gameState = GAME_STATES.PAUSE;        
+        gameState = GAME_STATES.PAUSE;
         hud.stopTimer();
         sweeper.showInccoretFlags();
         currAnims = palyLoseEffects();
@@ -206,7 +223,10 @@ function setup(loader, resources) {
                         cell.value.reveal();
                     });
             })
-            .finally(() => sound.play('lose'));
+            .finally(() => {
+                sound.play('lose');
+                popup.playerLose().show();
+            });
     }
 
     hud.diffBtn.on("pointertap", () => {
@@ -221,19 +241,27 @@ function setup(loader, resources) {
             hud.diffBtn.text = "Diffculty: Easy";
         }
 
-        newGame();
+        gameReset();
     });
 
     hud.audioBtn.pointerTapCallback = () => {
-        console.log("audio");
+        if (muted) {
+            muted = false;
+            Sound.unmuteAll();
+            hud.audioBtn.btn.texture = hud.textures.audioOn;
+        } else {
+            muted = true;
+            Sound.muteAll();
+            hud.audioBtn.btn.texture = hud.textures.audioOff;
+        }
     }
 
     hud.resetBtn.pointerTapCallback = () => {
-        newGame();
+        gameReset();
     }
 
     hud.trophyBtn.pointerTapCallback = () => {
-        console.log("trophy");
+        popup.playerRecords().show();
     }
 
     sweeper.cellLeftClicked = (cell) => {
@@ -278,9 +306,23 @@ function setup(loader, resources) {
         }
     }
 
-    newGame();
+    popup.newGameBtn.pointerTapCallback = () => {
+        gameReset();
+        popup.hide();
+    }
+
+    popup.tryAgainBtn.pointerTapCallback = () => {
+        gameReset();
+        popup.hide();
+    }
+
+    popup.closeBtn.pointerTapCallback = () => {
+        popup.hide();
+    }
+
+    gameReset();
     scale(app.view);
-    app.stage.addChild(hud, sweeper, loseScene);
+    app.stage.addChild(hud, sweeper, popup);
 
     // game loop
     app.ticker.add((delta) => {

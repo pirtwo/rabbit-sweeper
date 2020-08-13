@@ -27,25 +27,29 @@ const GAME_STATES = {
 
 const GAME_DIFFICULTY = {
     easy: {
+        value: 'easy',
         rows: 9,
         cols: 9,
         rabbits: calcRabbitNum(9 * 9, 10)
     },
     medium: {
+        value: 'medium',
         rows: 13,
         cols: 19,
         rabbits: calcRabbitNum(13 * 19, 17)
     },
     hard: {
+        value: 'hard',
         rows: 17,
         cols: 31,
         rabbits: calcRabbitNum(17 * 31, 20)
     }
 }
 
-loadWebfonts(["Aldrich"], init);
+loadWebfonts(["Bungee"], init);
 
 function init() {
+    initStorage();
     app.loader
         .add('tileset', './assets/sprites/tileset.json')
         .add('sounds', './assets/sounds/sounds.mp3')
@@ -208,9 +212,17 @@ function setup(loader, resources) {
 
     const gameWin = () => {
         gameState = GAME_STATES.PAUSE;
+        let currTime = hud.timeCounter.text;
+        let record = getRecord(gameDifficulty.value);
+
         hud.stopTimer();
         sound.play('win');
-        popup.playerWin().show();
+        if (currTime < record || record === '') {
+            saveRecord(currTime, gameDifficulty.value);
+            popup.playerWin(true).show();
+        } else {
+            popup.playerWin().show();
+        }        
     }
 
     const gameLose = () => {
@@ -234,13 +246,13 @@ function setup(loader, resources) {
     hud.diffBtn.on("pointertap", () => {
         if (gameDifficulty === GAME_DIFFICULTY.easy) {
             gameDifficulty = GAME_DIFFICULTY.medium;
-            hud.diffBtn.text = "Diffculty: Medium";
+            hud.diffBtn.text = "Mode: Medium";
         } else if (gameDifficulty === GAME_DIFFICULTY.medium) {
             gameDifficulty = GAME_DIFFICULTY.hard;
-            hud.diffBtn.text = "Diffculty: Hard";
+            hud.diffBtn.text = "Mode: Hard";
         } else if (gameDifficulty === GAME_DIFFICULTY.hard) {
             gameDifficulty = GAME_DIFFICULTY.easy;
-            hud.diffBtn.text = "Diffculty: Easy";
+            hud.diffBtn.text = "Mode: Easy";
         }
 
         gameReset();
@@ -263,7 +275,13 @@ function setup(loader, resources) {
     }
 
     hud.trophyBtn.pointerTapCallback = () => {
-        popup.playerRecords().show();
+        let records = getRecords();
+        let st = "";
+        Object.keys(records).forEach(key => {
+
+            st += `${key.toString().toUpperCase()}\n${records[key] ? records[key] : '--:--'}\n\n`;
+        });
+        popup.playerRecords(st).show();
     }
 
     sweeper.cellLeftClicked = (cell) => {
@@ -334,6 +352,35 @@ function setup(loader, resources) {
         charm.update();
         stats.end();
     });
+}
+
+function initStorage() {
+    let ls = window.localStorage;
+    if (ls.getItem("rabbitSweeper") === null) {
+        ls.setItem("rabbitSweeper", JSON.stringify({
+            easy: '',
+            medium: '',
+            hard: ''
+        }));
+    }
+}
+
+function getRecord(difficulty) {
+    let ls = window.localStorage;
+    let records = JSON.parse(ls.getItem("rabbitSweeper"));
+    return records[difficulty];
+}
+
+function getRecords() {
+    let ls = window.localStorage;
+    return JSON.parse(ls.getItem("rabbitSweeper"));
+}
+
+function saveRecord(record, difficulty) {
+    let ls = window.localStorage;
+    let records = JSON.parse(ls.getItem("rabbitSweeper"));
+    records[difficulty] = record;
+    ls.setItem("rabbitSweeper", JSON.stringify(records));
 }
 
 function calcRabbitNum(cells, ratio = 20) {

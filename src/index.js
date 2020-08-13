@@ -9,6 +9,7 @@ import Hud from './hud';
 import PopupScene from './popup';
 import loadWebfonts from "./lib/webfont";
 
+
 const app = new PIXI.Application({
     width: 1920,
     height: 1080,
@@ -86,7 +87,6 @@ function setup(loader, resources) {
         },
     });
 
-
     let currAnims;
     let plantedFlags = 0;
     let muted = false;
@@ -143,6 +143,8 @@ function setup(loader, resources) {
         backdropWidth: 1920,
         backdropHeight: 1080,
         textures: {
+            win: tileset['win.png'],
+            lose: tileset['lose.png'],
             button: app.renderer.generateTexture(shape4)
         }
     });

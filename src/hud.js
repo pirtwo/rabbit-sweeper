@@ -32,28 +32,25 @@ export default class Hud extends Container {
 
         this.flagCounter = new Text("00:99", new TextStyle({
             fontSize: 25,
-            fontWeight: "bold",
-            fontFamily: 'Aldrich'
+            fontFamily: ['Bungee', 'cursive']
         }));
 
         this.timeCounter = new Text("00:00", new TextStyle({
             fontSize: 25,
-            fontWeight: "bold",
-            fontFamily: 'Aldrich'
+            fontFamily: ['Bungee', 'cursive']
         }));
 
         this.status.addChild(flagIcon, timerIcon, this.flagCounter, this.timeCounter);
         flagIcon.position.set(0, 0);
-        this.flagCounter.position.set(40, 0);
-        timerIcon.position.set(130, 0);
-        this.timeCounter.position.set(170, 0);
+        this.flagCounter.position.set(35, 0);
+        timerIcon.position.set(140, 0);
+        this.timeCounter.position.set(175, 0);
 
         let btnSize = 70;
 
-        this.diffBtn = new Text("Diffculty: Easy", new TextStyle({
+        this.diffBtn = new Text("Mode: Easy", new TextStyle({
             fontSize: 25,
-            fontWeight: "bold",
-            fontFamily: 'Aldrich'
+            fontFamily: ['Bungee', 'cursive']
         }));
         this.diffBtn.buttonMode = true;
         this.diffBtn.interactive = true;
@@ -86,7 +83,7 @@ export default class Hud extends Container {
         this.trophyBtn.btn.tint = 0x424242;
 
         this.diffBtn.position.set(0, 40);
-        this.status.position.set(300, 40);
+        this.status.position.set(270, 40);
         this.trophyBtn.position.set(600, 15);
         this.audioBtn.position.set(670, 15);
         this.resetBtn.position.set(740, 15);

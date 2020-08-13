@@ -193,7 +193,7 @@ class Cell extends Container {
     this.cross.position.set(this.cellSize / 2, this.cellSize / 2);
 
     this.rabbit.width = this.cellSize / 2;
-    this.rabbit.height = this.cellSize / 2;
+    this.rabbit.height = this.cellSize / 1.5;
     this.rabbit.anchor.set(0.5, 0.5);
     this.rabbit.position.set(this.cellSize / 2, this.cellSize / 2);
 
@@ -232,6 +232,7 @@ class Cell extends Container {
     this.number.style = new TextStyle({
       fontSize: this.cellSize / 2,
       fill: textColor,
+      fontFamily: ['Bungee', 'cursive']
     });
 
     this.neighbourRabbits = value;

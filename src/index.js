@@ -77,18 +77,22 @@ function setup(loader, resources) {
             start: 0.8,
             end: 1.5
         },
+        'add-flag': {
+            start: 2,
+            end: 2.5
+        },
+        'remove-flag': {
+            start: 2.9,
+            end: 3.5
+        },
         'win': {
-            start: 1.5,
-            end: 4
+            start: 3.5,
+            end: 6
         },
         'lose': {
-            start: 4,
-            end: 8
-        },
-        'music': {
-            start: 8,
-            end: 22
-        },
+            start: 6,
+            end: 10
+        }        
     });
 
     let currAnims;
@@ -314,11 +318,13 @@ function setup(loader, resources) {
                     plantedFlags--;
                     cell.toggleFlag();
                     hud.setFlagCounter(plantedFlags);
+                    sound.play('remove-flag');
                 } else {
                     if (plantedFlags < gameDifficulty.rabbits) {
                         plantedFlags++;
                         cell.toggleFlag();
                         hud.setFlagCounter(plantedFlags);
+                        sound.play('add-flag');
                     }
                 }
             }

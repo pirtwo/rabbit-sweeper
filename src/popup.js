@@ -30,14 +30,27 @@ export default class PopupScene extends Scene {
         this.backdrop.endFill();
         this.backdrop.interactive = true; // capture tap or clicks
 
-        this.title = new PIXI.Text("", new PIXI.TextStyle({
-            fontSize: 30,
+        this.title = new PIXI.Text("title", new PIXI.TextStyle({
+            fontSize: 40,
             fontWeight: 'bold',
-            fontFamily: 'Aldrich'
+            fontFamily: ['Bungee', 'cursive'],
+            fill: 0x7b1fa2
         }));
+        this.records = new PIXI.Text("records", new PIXI.TextStyle({
+            fontSize: 35,
+            fontFamily: ['Bungee', 'cursive'],
+            align: 'center'
+        }));
+        this.newRecord = new PIXI.Text("WOOW, New Record", new PIXI.TextStyle({
+            fontSize: 40,
+            fontWeight: 'bold',
+            fontFamily: ['Bungee', 'cursive'],
+            fill: 0x7b1fa2
+        }));
+
         this.winSprite = new PIXI.Sprite(textures.win);
         this.loseSprite = new PIXI.Sprite(textures.lose);
-        this.winSprite.width = this.winSprite.height = 400;
+        this.winSprite.width = this.winSprite.height = 350;
         this.loseSprite.width = this.loseSprite.height = 400;
 
         this.tryAgainBtn = new Button({
@@ -46,7 +59,7 @@ export default class PopupScene extends Scene {
             text: new PIXI.Text("Try Again", new PIXI.TextStyle({
                 fill: 0xffffff,
                 fontSize: 27,
-                fontFamily: 'Aldrich'
+                fontFamily: ['Bungee', 'cursive']
             })),
             frames: {
                 button: textures.button
@@ -61,7 +74,7 @@ export default class PopupScene extends Scene {
             text: new PIXI.Text("New Game", new PIXI.TextStyle({
                 fill: 0xffffff,
                 fontSize: 27,
-                fontFamily: 'Aldrich'
+                fontFamily: ['Bungee', 'cursive']
             })),
             frames: {
                 button: textures.button
@@ -76,7 +89,7 @@ export default class PopupScene extends Scene {
             text: new PIXI.Text("Close", new PIXI.TextStyle({
                 fill: 0xffffff,
                 fontSize: 27,
-                fontFamily: 'Aldrich'
+                fontFamily: ['Bungee', 'cursive']
             })),
             frames: {
                 button: textures.button
@@ -89,6 +102,8 @@ export default class PopupScene extends Scene {
         this.body.addChild(
             this.background,
             this.title,
+            this.newRecord,
+            this.records,
             this.winSprite,
             this.loseSprite,
             this.tryAgainBtn,
@@ -97,8 +112,8 @@ export default class PopupScene extends Scene {
         );
         this.addChild(this.backdrop, this.body);
 
-        this.title.position.set(this.body.width / 2 - this.title.width / 2, 50);
-        this.winSprite.position.set(this.body.width / 2 - this.winSprite.width / 2, 100);
+        this.newRecord.position.set(this.body.width / 2 - this.newRecord.width / 2, 50);
+        this.winSprite.position.set(this.body.width / 2 - this.winSprite.width / 2, 130);
         this.loseSprite.position.set(this.body.width / 2 - this.loseSprite.width / 2, 100);
         this.tryAgainBtn.position.set(this.body.width / 2 - this.tryAgainBtn.width / 2, 520);
         this.newGameBtn.position.set(this.body.width / 2 - this.newGameBtn.width / 2, 520);
@@ -109,36 +124,51 @@ export default class PopupScene extends Scene {
         );
     }
 
-    playerRecords() {
+    playerRecords(records) {
+        this.title.visible = true;
+        this.title.text = "Best Records";
+        this.title.position.set(this.body.width / 2 - this.title.width / 2, 50);
+        
+        this.records.visible = true;
+        this.records.text = records;
+        this.records.position.set(this.body.width / 2 - this.records.width / 2, 150);
+
+        this.newRecord.visible = false;
         this.winSprite.visible = false;
         this.loseSprite.visible = false;
         this.newGameBtn.visible = false;
         this.tryAgainBtn.visible = false;
         this.closeBtn.visible = true;
-        this.title.text = "Best Records";
-        this.title.position.set(this.body.width / 2 - this.title.width / 2, 50);
         return this;
     }
 
-    playerWin() {
+    playerWin(hasNewRecord = false) {
+        this.title.visible = !hasNewRecord;
+        this.title.text = "Awsome, You Won";
+        this.title.position.set(this.body.width / 2 - this.title.width / 2, 50);
+
+        this.newRecord.visible = hasNewRecord;
+        this.records.visible = false;
         this.winSprite.visible = true;
         this.loseSprite.visible = false;
         this.newGameBtn.visible = true;
         this.tryAgainBtn.visible = false;
-        this.closeBtn.visible = false;
-        this.title.text = "Awsome, You Won";
-        this.title.position.set(this.body.width / 2 - this.title.width / 2, 50);
+        this.closeBtn.visible = false;        
         return this;
     }
 
     playerLose() {
+        this.title.visible = true;
+        this.title.text = "Ahhh, Rabbits";
+        this.title.position.set(this.body.width / 2 - this.title.width / 2, 50);
+
+        this.newRecord.visible = false;
+        this.records.visible = false;
         this.winSprite.visible = false;
         this.loseSprite.visible = true;
         this.newGameBtn.visible = false;
         this.tryAgainBtn.visible = true;
-        this.closeBtn.visible = false;
-        this.title.text = "Ahhh, Rabbits...";
-        this.title.position.set(this.body.width / 2 - this.title.width / 2, 50);
+        this.closeBtn.visible = false;        
         return this;
     }
 }

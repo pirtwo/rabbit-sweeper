@@ -2,7 +2,7 @@
 
 "audioOff.png":
 {
-	"frame": {"x":295,"y":5,"w":100,"h":100},
+	"frame": {"x":5,"y":5,"w":100,"h":100},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":100,"h":100},
@@ -10,31 +10,15 @@
 },
 "audioOn.png":
 {
-	"frame": {"x":400,"y":5,"w":100,"h":100},
+	"frame": {"x":110,"y":5,"w":100,"h":100},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":100,"h":100},
 	"sourceSize": {"w":100,"h":100}
 },
-"bush-1.png":
-{
-	"frame": {"x":5,"y":5,"w":64,"h":64},
-	"rotated": false,
-	"trimmed": false,
-	"spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},
-	"sourceSize": {"w":64,"h":64}
-},
-"bush-2.png":
-{
-	"frame": {"x":74,"y":5,"w":64,"h":64},
-	"rotated": false,
-	"trimmed": false,
-	"spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},
-	"sourceSize": {"w":64,"h":64}
-},
 "carrot.png":
 {
-	"frame": {"x":212,"y":5,"w":78,"h":70},
+	"frame": {"x":215,"y":5,"w":78,"h":70},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":78,"h":70},
@@ -42,7 +26,7 @@
 },
 "cross.png":
 {
-	"frame": {"x":5,"y":110,"w":100,"h":100},
+	"frame": {"x":298,"y":5,"w":100,"h":100},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":100,"h":100},
@@ -50,15 +34,23 @@
 },
 "flag.png":
 {
-	"frame": {"x":110,"y":110,"w":100,"h":100},
+	"frame": {"x":403,"y":5,"w":100,"h":100},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":100,"h":100},
 	"sourceSize": {"w":100,"h":100}
 },
+"lose.png":
+{
+	"frame": {"x":5,"y":110,"w":500,"h":500},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":500,"h":500},
+	"sourceSize": {"w":500,"h":500}
+},
 "rabbit.png":
 {
-	"frame": {"x":376,"y":215,"w":100,"h":133},
+	"frame": {"x":5,"y":615,"w":100,"h":133},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":100,"h":133},
@@ -66,23 +58,15 @@
 },
 "rabbit_round.png":
 {
-	"frame": {"x":215,"y":110,"w":100,"h":100},
+	"frame": {"x":110,"y":615,"w":100,"h":100},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":100,"h":100},
 	"sourceSize": {"w":100,"h":100}
 },
-"record.png":
-{
-	"frame": {"x":110,"y":215,"w":128,"h":128},
-	"rotated": false,
-	"trimmed": false,
-	"spriteSourceSize": {"x":0,"y":0,"w":128,"h":128},
-	"sourceSize": {"w":128,"h":128}
-},
 "return.png":
 {
-	"frame": {"x":320,"y":110,"w":100,"h":100},
+	"frame": {"x":215,"y":615,"w":100,"h":100},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":100,"h":100},
@@ -90,38 +74,35 @@
 },
 "stopwatch.png":
 {
-	"frame": {"x":243,"y":215,"w":128,"h":128},
+	"frame": {"x":320,"y":615,"w":128,"h":128},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":128,"h":128},
 	"sourceSize": {"w":128,"h":128}
 },
-"tree.png":
-{
-	"frame": {"x":143,"y":5,"w":64,"h":64},
-	"rotated": false,
-	"trimmed": false,
-	"spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},
-	"sourceSize": {"w":64,"h":64}
-},
 "trophy.png":
 {
-	"frame": {"x":5,"y":215,"w":100,"h":100},
+	"frame": {"x":5,"y":753,"w":100,"h":100},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":100,"h":100},
 	"sourceSize": {"w":100,"h":100}
-}},
-"animations": {
-	"bush": ["bush-1.png","bush-2.png"]
 },
+"win.png":
+{
+	"frame": {"x":5,"y":858,"w":500,"h":500},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":500,"h":500},
+	"sourceSize": {"w":500,"h":500}
+}},
 "meta": {
 	"app": "https://www.codeandweb.com/texturepacker",
 	"version": "1.0",
 	"image": "tileset.png",
 	"format": "RGBA8888",
-	"size": {"w":505,"h":353},
+	"size": {"w":510,"h":1363},
 	"scale": "1",
-	"smartupdate": "$TexturePacker:SmartUpdate:507bb00999ad5ee9c022743bc710b2ce:0da64f3ad1d6e88391b121d7d7c7ca51:ace0e5e82375743ccde85e973fd84fb5$"
+	"smartupdate": "$TexturePacker:SmartUpdate:4ea68ee94c9fcb9c21d5023bdb11f0e5:04075adcf4ad531af1056d1567618f1d:ace0e5e82375743ccde85e973fd84fb5$"
 }
 }

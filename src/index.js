@@ -92,7 +92,7 @@ function setup(loader, resources) {
         'lose': {
             start: 6,
             end: 10
-        }        
+        }
     });
 
     let currAnims;
@@ -227,7 +227,7 @@ function setup(loader, resources) {
             popup.playerWin(true).show();
         } else {
             popup.playerWin().show();
-        }        
+        }
     }
 
     const gameLose = () => {
@@ -249,6 +249,7 @@ function setup(loader, resources) {
     }
 
     hud.diffBtn.on("pointertap", () => {
+        if (gameState === GAME_STATES.SKIP || gameState === GAME_STATES.PAUSE) return;
         if (gameDifficulty === GAME_DIFFICULTY.easy) {
             gameDifficulty = GAME_DIFFICULTY.medium;
             hud.diffBtn.text = "Mode: Medium";
@@ -276,14 +277,16 @@ function setup(loader, resources) {
     }
 
     hud.resetBtn.pointerTapCallback = () => {
+        if (gameState === GAME_STATES.SKIP || gameState === GAME_STATES.PAUSE) return;
         gameReset();
     }
 
     hud.trophyBtn.pointerTapCallback = () => {
+        if (gameState === GAME_STATES.SKIP || gameState === GAME_STATES.PAUSE) return;
+
         let records = getRecords();
         let st = "";
         Object.keys(records).forEach(key => {
-
             st += `${key.toString().toUpperCase()}\n${records[key] ? records[key] : '--:--'}\n\n`;
         });
         popup.playerRecords(st).show();

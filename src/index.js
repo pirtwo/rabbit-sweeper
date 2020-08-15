@@ -191,6 +191,7 @@ function setup(loader, resources) {
     const gameReset = () => {
         plantedFlags = 0;
         Sound.stopAll();
+        Sound.volumeAll = 0.1;
         hud.resetTimer();
         hud.setFlagCounter(plantedFlags, gameDifficulty.rabbits);
         shakeTween.pause();

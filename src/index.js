@@ -1,22 +1,15 @@
-import * as PIXI from "pixi.js";
+import * as PIXI from 'pixi.js';
 import * as utils from './lib/utils';
-import Sound from "pixi-sound";
-import Stats from "stats.js";
+import Sound from 'pixi-sound';
+import Stats from 'stats.js';
 import Charm from './lib/charm';
 import scale from './lib/scale';
 import Sweeper from './sweeper';
 import Hud from './hud';
 import PopupScene from './popup';
-import loadWebfonts from "./lib/webfont";
+import SplashScreen from './splash';
+import loadWebfonts from './lib/webfont';
 
-
-const app = new PIXI.Application({
-    width: 1920,
-    height: 1080,
-    antialias: true,
-    transparent: true
-});
-document.body.appendChild(app.view);
 
 const GAME_STATES = {
     "READY": 0,
@@ -46,10 +39,37 @@ const GAME_DIFFICULTY = {
     }
 }
 
+const app = new PIXI.Application({
+    width: 1920,
+    height: 1080,
+    antialias: true,
+    transparent: true
+});
+
+let splashScreen
 loadWebfonts(["Bungee"], init);
 
 function init() {
     initStorage();
+    document.body.appendChild(app.view);
+    window.addEventListener('resize', () => scale(app.view));
+    document.addEventListener('contextmenu', event => event.preventDefault());
+    scale(app.view);
+
+    // create splash screen
+    splashScreen = new SplashScreen({
+        app: app,
+        width: app.screen.width,
+        height: app.screen.height
+    });
+    app.stage.addChild(splashScreen);
+    splashScreen.show();
+
+    // update loading progress
+    app.loader.onProgress.add(loader => {
+        splashScreen.progress.text = `Loading ${loader.progress.toFixed(0)}%`;
+    });
+
     app.loader
         .add('tileset', './assets/sprites/tileset.json')
         .add('sounds', './assets/sounds/sounds.mp3')
@@ -60,6 +80,8 @@ function setup(loader, resources) {
     let stats = new Stats();
     stats.showPanel(0);
     document.body.appendChild(stats.dom);
+
+    app.stop();
 
     const charm = new Charm(PIXI);
     const tileset = resources.tileset.textures;
@@ -148,8 +170,8 @@ function setup(loader, resources) {
     const popup = new PopupScene({
         width: 500,
         height: 650,
-        backdropWidth: 1920,
-        backdropHeight: 1080,
+        backdropWidth: app.screen.width,
+        backdropHeight: app.screen.height,
         textures: {
             win: tileset['win.png'],
             lose: tileset['lose.png'],
@@ -351,8 +373,17 @@ function setup(loader, resources) {
     }
 
     gameReset();
-    scale(app.view);
-    app.stage.addChild(hud, sweeper, popup);
+    //app.stage.addChild(hud, sweeper, popup);
+
+    splashScreen.progress.visible = false;
+    splashScreen.playBtn.visible = true;
+    splashScreen.playBtn.on('pointertap', () => {
+        // hide splash screen
+        splashScreen.hide();
+        splashScreen.ticker.destroy();
+        app.stage.removeChild(splashScreen);
+        app.stage.addChild(hud, sweeper, popup);
+    });
 
     // game loop
     app.ticker.add((delta) => {
@@ -362,6 +393,8 @@ function setup(loader, resources) {
         charm.update();
         stats.end();
     });
+
+    app.start();
 }
 
 function initStorage() {
@@ -396,6 +429,3 @@ function saveRecord(record, difficulty) {
 function calcRabbitNum(cells, ratio = 20) {
     return Math.floor(cells * ratio / 100);
 }
-
-window.addEventListener('resize', () => scale(app.view));
-document.addEventListener('contextmenu', event => event.preventDefault());

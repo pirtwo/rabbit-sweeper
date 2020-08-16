@@ -23,19 +23,19 @@ const GAME_DIFFICULTY = {
         value: 'easy',
         rows: 9,
         cols: 9,
-        rabbits: calcRabbitNum(9 * 9, 10)
+        rabbits: 10 // cells * ratio / 100
     },
     medium: {
         value: 'medium',
         rows: 13,
         cols: 19,
-        rabbits: calcRabbitNum(13 * 19, 17)
+        rabbits: 45
     },
     hard: {
         value: 'hard',
         rows: 17,
         cols: 31,
-        rabbits: calcRabbitNum(17 * 31, 20)
+        rabbits: 110
     }
 }
 
@@ -424,8 +424,4 @@ function saveRecord(record, difficulty) {
     let records = JSON.parse(ls.getItem("rabbitSweeper"));
     records[difficulty] = record;
     ls.setItem("rabbitSweeper", JSON.stringify(records));
-}
-
-function calcRabbitNum(cells, ratio = 20) {
-    return Math.floor(cells * ratio / 100);
 }

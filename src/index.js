@@ -1,7 +1,6 @@
 import * as PIXI from 'pixi.js';
 import * as utils from './lib/utils';
 import Sound from 'pixi-sound';
-import Stats from 'stats.js';
 import Charm from './lib/charm';
 import scale from './lib/scale';
 import Sweeper from './sweeper';
@@ -77,10 +76,6 @@ function init() {
 }
 
 function setup(loader, resources) {
-    let stats = new Stats();
-    stats.showPanel(0);
-    document.body.appendChild(stats.dom);
-
     app.stop();
 
     const charm = new Charm(PIXI);
@@ -386,12 +381,10 @@ function setup(loader, resources) {
     });
 
     // game loop
-    app.ticker.add((delta) => {
-        stats.begin();
+    app.ticker.add((delta) => {        
         hud.update(delta);
         sweeper.update(delta);
         charm.update();
-        stats.end();
     });
 
     app.start();
